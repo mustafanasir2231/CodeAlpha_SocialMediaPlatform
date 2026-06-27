@@ -1,0 +1,154 @@
+/* ============================================
+   SIDEBAR.CSS — collapsed by default, expands on hover
+============================================ */
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: var(--sidebar-width-collapsed);
+    background: var(--color-bg-card);
+    border-right: 1px solid var(--color-border-light);
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-xl) var(--space-sm);
+    z-index: 50;
+    overflow: hidden;
+    transition: width 0.2s ease;
+}
+
+/* Hover pe expand — box-shadow se thoda "floating" feel taake content ke upar
+   overlay ho, page reflow na ho (warna har post card resize hoga jo jarring lagega) */
+.sidebar:hover {
+    width: var(--sidebar-width);
+    box-shadow: var(--shadow-lg);
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-sm);
+    margin-bottom: var(--space-xl);
+    cursor: pointer;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+}
+
+.sidebar-logo-icon {
+    font-size: var(--font-xl);
+    font-weight: 700;
+    flex-shrink: 0;
+    width: 24px;
+    text-align: center;
+}
+
+.sidebar-logo-text {
+    font-size: var(--font-xl);
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.sidebar:hover .sidebar-logo-text {
+    opacity: 1;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+/* NAYA: Logout ko sidebar ke sabse neeche push karne ke liye */
+.sidebar-bottom {
+    margin-top: auto;
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-border-light);
+}
+
+.sidebar-item-logout:hover {
+    background: var(--color-primary-light);
+    color: var(--color-danger);
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    width: 100%;
+    padding: var(--space-md);
+    border: none;
+    background: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    color: var(--color-text-primary);
+    font-size: var(--font-md);
+    transition: background 0.15s ease;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.sidebar-item:hover {
+    background: var(--color-bg-hover);
+}
+
+.sidebar-item-active {
+    font-weight: 700;
+}
+
+.sidebar-icon {
+    flex-shrink: 0;
+}
+
+.sidebar-label {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.sidebar:hover .sidebar-label {
+    opacity: 1;
+}
+
+/* ===== Mobile: collapse/hover-expand idea doesn't work well with touch,
+   so on small screens it becomes a fixed bottom bar instead ===== */
+@media (max-width: 640px) {
+    .sidebar {
+        width: 100%;
+        height: 56px;
+        top: auto;
+        bottom: 0;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+        border-right: none;
+        border-top: 1px solid var(--color-border-light);
+        padding: 0;
+        transition: none;
+    }
+
+    .sidebar:hover {
+        width: 100%;
+        box-shadow: none;
+    }
+
+    .sidebar-logo {
+        display: none;
+    }
+
+    .sidebar-nav {
+        flex-direction: row;
+        width: 100%;
+        justify-content: space-around;
+    }
+
+    .sidebar-item {
+        padding: var(--space-sm);
+        justify-content: center;
+    }
+
+    .sidebar-label {
+        display: none;
+    }
+}

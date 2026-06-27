@@ -1,0 +1,316 @@
+/* ============================================
+   PROFILE-PAGE.CSS
+============================================ */
+
+.profile-page {
+    max-width: 935px;
+    margin: 0 auto;
+    padding: var(--space-2xl) var(--space-lg);
+}
+
+/* ===== Header ===== */
+.profile-header {
+    display: flex;
+    gap: var(--space-2xl);
+    margin-bottom: var(--space-xl);
+    align-items: flex-start;
+}
+
+.profile-avatar-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.profile-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: var(--radius-round);
+    background: var(--color-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 56px;
+    font-weight: bold;
+    overflow: hidden;
+    position: relative;
+    cursor: default;
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-avatar-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    cursor: pointer;
+}
+
+.profile-avatar:hover .profile-avatar-overlay {
+    opacity: 1;
+}
+
+.profile-online-dot {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    width: 18px;
+    height: 18px;
+    border-radius: var(--radius-round);
+    background: var(--color-success);
+    border: 3px solid var(--color-bg-card);
+}
+
+.profile-info {
+    flex: 1;
+    padding-top: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.profile-info-top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.profile-username {
+    font-size: var(--font-xl);
+    font-weight: 400;
+    margin: 0;
+}
+
+.profile-actions {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+
+.btn-profile-action {
+    padding: 7px 24px;
+    font-size: var(--font-sm);
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+}
+
+.profile-online-text {
+    font-size: var(--font-sm);
+    color: var(--color-success);
+    margin: 0 0 var(--space-md);
+}
+
+.profile-stats {
+    display: flex;
+    gap: var(--space-xl);
+    margin-bottom: var(--space-lg);
+    font-size: var(--font-base);
+    width: 100%;
+}
+
+.profile-stat-clickable {
+    cursor: pointer;
+}
+
+.profile-bio {
+    display: block;
+    width: 100%;
+}
+
+.profile-bio {
+    text-align: left;
+    max-width: 400px;
+}
+
+.profile-bio-text {
+    font-size: var(--font-base);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xs);
+    text-align: left;
+}
+
+.profile-bio-empty {
+    font-size: var(--font-base);
+    color: var(--color-text-light);
+    font-style: italic;
+    margin: 0 0 var(--space-xs);
+}
+
+.profile-bio-edit-link {
+    border: none;
+    background: none;
+    color: var(--color-primary);
+    cursor: pointer;
+    font-size: var(--font-sm);
+    padding: 0;
+}
+
+.profile-bio-edit textarea {
+    width: 100%;
+    max-width: 400px;
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    resize: none;
+    font-size: var(--font-base);
+    font-family: inherit;
+}
+
+.profile-bio-char-count {
+    font-size: var(--font-xs);
+    color: var(--color-text-secondary);
+    text-align: right;
+    max-width: 400px;
+}
+
+.profile-bio-edit-actions {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-xs);
+}
+
+/* ===== Follow requests box ===== */
+.profile-requests-box {
+    margin: var(--space-lg) 0;
+    padding: var(--space-lg);
+    background: #fff8e1;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-warning);
+}
+
+.profile-requests-title {
+    margin: 0 0 var(--space-md);
+    font-size: var(--font-md);
+}
+
+.profile-request-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid #ffe082;
+}
+
+/* ===== Tabs — Instagram jaisa, icon + uppercase label, top border on active ===== */
+.profile-tabs {
+    display: flex;
+    justify-content: flex-start;
+    gap: var(--space-2xl);
+    border-top: 1px solid var(--color-border-light);
+    margin-top: var(--space-xl);
+}
+
+.profile-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: var(--space-md) 0;
+    border: none;
+    border-top: 1px solid transparent;
+    background: none;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-size: var(--font-xs);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-top: -1px;
+}
+
+.profile-tab-active {
+    color: var(--color-text-primary);
+    border-top: 1px solid var(--color-text-primary);
+}
+
+/* ===== Posts grid — square thumbnails, Instagram jaisa ===== */
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+}
+
+.profile-grid-item {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background: var(--color-bg-hover);
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    display: block;
+}
+
+.profile-grid-item img,
+.profile-grid-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-grid-text-post {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-md);
+    font-size: var(--font-sm);
+    color: var(--color-text-primary);
+    text-align: center;
+    overflow: hidden;
+}
+
+.profile-grid-unsave {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: var(--radius-round);
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.profile-empty-text {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--color-text-secondary);
+    padding: var(--space-2xl) 0;
+}
+
+/* ===== Responsive — mobile pe header column ban jata hai ===== */
+@media (max-width: 600px) {
+    .profile-header {
+        gap: var(--space-lg);
+    }
+
+    .profile-avatar {
+        width: 90px;
+        height: 90px;
+        font-size: 36px;
+    }
+
+    .profile-username {
+        font-size: var(--font-lg);
+    }
+
+    .profile-stats {
+        gap: var(--space-lg);
+        font-size: var(--font-sm);
+    }
+}

@@ -1,0 +1,79 @@
+/* ============================================
+   MESSAGES-LIST-PAGE.CSS
+============================================ */
+
+.messages-list-page {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-lg);
+}
+
+.messages-list-title {
+    font-size: var(--font-xl);
+    margin: 0 0 var(--space-lg);
+}
+
+.messages-list-empty {
+    text-align: center;
+    color: var(--color-text-secondary);
+    padding: var(--space-2xl) 0;
+}
+
+.messages-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.conversation-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-sm);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.conversation-row:hover {
+    background: var(--color-bg-hover);
+}
+
+.conversation-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-round);
+    background: var(--color-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: var(--font-lg);
+    flex-shrink: 0;
+}
+
+.conversation-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.conversation-username {
+    font-weight: 600;
+    font-size: var(--font-md);
+}
+
+.conversation-preview {
+    font-size: var(--font-sm);
+    color: var(--color-text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.conversation-time {
+    font-size: var(--font-xs);
+    color: var(--color-text-secondary);
+    flex-shrink: 0;
+}

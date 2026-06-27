@@ -1,0 +1,71 @@
+/* ============================================
+   NOTIFICATIONS-PAGE.CSS
+============================================ */
+
+.notifications-page {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-lg);
+}
+
+.notifications-title {
+    font-size: var(--font-xl);
+    margin: 0 0 var(--space-lg);
+}
+
+.notifications-empty {
+    text-align: center;
+    color: var(--color-text-secondary);
+    padding: var(--space-2xl) 0;
+}
+
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.notification-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-sm);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.notification-row:hover {
+    background: var(--color-bg-hover);
+}
+
+.notification-unread {
+    background: var(--color-primary-light);
+}
+
+.notification-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-round);
+    background: var(--color-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.notification-text {
+    font-size: var(--font-base);
+    line-height: 1.4;
+}
+
+.notification-username {
+    font-weight: 600;
+}
+
+.notification-time {
+    font-size: var(--font-xs);
+    color: var(--color-text-secondary);
+    margin-top: 2px;
+}

@@ -1,0 +1,182 @@
+/* ===== Register.css ===== */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+.auth-wrapper {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  font-family: 'Nunito', sans-serif;
+}
+
+/* LEFT */
+.auth-left {
+  position: relative;
+  width: 40%;
+  background: linear-gradient(145deg, #6366f1 0%, #4f46e5 55%, #3730a3 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.auth-left-content {
+  position: relative;
+  z-index: 5;
+  text-align: center;
+  color: #fff;
+  padding: 1.5rem;
+}
+
+.auth-left-title {
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 0.4rem;
+  color: #fff;
+  font-family: 'Nunito', sans-serif;
+  letter-spacing: -0.3px;
+}
+
+.auth-left-sub {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.72);
+  margin-bottom: 1.2rem;
+  font-weight: 500;
+}
+
+.auth-switch-btn {
+  display: inline-block;
+  padding: 0.5rem 2rem;
+  border: 2px solid rgba(255,255,255,0.75);
+  border-radius: 30px;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: 'Nunito', sans-serif;
+}
+
+.auth-switch-btn:hover { background: rgba(255,255,255,0.14); }
+
+.wave { position: absolute; border-radius: 50%; }
+.wave1 { width: 280px; height: 280px; top: -65px; left: -65px; border-radius: 60% 40% 55% 45%/50% 60% 40% 50%; background: rgba(255,255,255,0.07); }
+.wave2 { width: 220px; height: 220px; bottom: -45px; right: -45px; border-radius: 40% 60% 45% 55%/60% 40% 55% 45%; background: rgba(255,255,255,0.06); }
+.wave3 { width: 160px; height: 160px; bottom: 90px; left: 12px; border-radius: 55% 45% 50% 50%/45% 55% 50% 50%; background: rgba(255,255,255,0.05); }
+
+/* RIGHT */
+.auth-right {
+  width: 60%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  padding: 1.5rem;
+}
+
+.auth-form-box {
+  width: 100%;
+  max-width: 360px;
+}
+
+.auth-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #4f46e5;
+  margin-bottom: 1.1rem;
+  text-align: center;
+  font-family: 'Nunito', sans-serif;
+  letter-spacing: -0.2px;
+}
+
+/* FORM */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid #e4e4f0;
+  border-radius: 22px;
+  background: #f7f7fd;
+  padding: 0 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-wrapper:focus-within {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.09);
+  background: #fff;
+}
+
+.input-icon {
+  display: flex;
+  align-items: center;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.auth-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0.65rem 0;
+  font-size: 0.84rem;
+  color: #2d2d4e;
+  outline: none;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+}
+
+.auth-input::placeholder {
+  color: #b8b8d0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  font-family: 'Nunito', sans-serif;
+}
+
+.eye-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  margin-left: 0.3rem;
+  opacity: 0.65;
+  transition: opacity 0.2s;
+}
+.eye-btn:hover { opacity: 1; }
+
+/* BUTTON */
+.auth-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #fff;
+  border: none;
+  border-radius: 22px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 0.3rem;
+  letter-spacing: 0.3px;
+  transition: transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(79,70,229,0.32);
+  font-family: 'Nunito', sans-serif;
+}
+
+.auth-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(79,70,229,0.4); }
+.auth-btn:active { transform: translateY(0); }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .auth-wrapper { flex-direction: column; }
+  .auth-left { width: 100%; min-height: 170px; }
+  .auth-right { width: 100%; padding: 1.5rem 1rem; }
+}
