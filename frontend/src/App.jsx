@@ -7,10 +7,10 @@ import ProfilePage from './pages/ProfilePage';
 import ChatPage from './pages/ChatPage';
 import PostPage from './pages/PostPage';
 import HashtagPage from './pages/HashtagPage';
-import MessagesListPage from './pages/MessagesListPage'; // NAYA
-import NotificationsPage from './pages/NotificationsPage'; // NAYA
-import SearchPage from './pages/SearchPage'; // NAYA
-import Layout from './components/Layout'; // NAYA
+import MessagesListPage from './pages/MessagesListPage'; 
+import NotificationsPage from './pages/NotificationsPage'; 
+import SearchPage from './pages/SearchPage';
+import Layout from './components/Layout'; 
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
@@ -23,8 +23,7 @@ function App() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // NAYA: Helper — sidebar wale (Layout ke andar) protected pages ke liye.
-  // Login na ho to seedha /login bhej do, login ho to Layout ke andar page render karo.
+  
   const withLayout = (element) => {
     if (!token) return <Navigate to="/login" />;
     return <Layout>{element}</Layout>;
@@ -33,16 +32,16 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Login/Register pe sidebar nahi chahiye, isliye Layout ke bahar hain */}
+        {/* Login/Register don't need the sidebar, so they stay outside Layout. */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
         <Route path="/" element={withLayout(<HomePage />)} />
 
-        {/* DYNAMIC ROUTE: Yahan :username se kisi ki bhi profile khulegi */}
+        {/* DYNAMIC ROUTE: Here :username will open anyone's profile. */}
         <Route path="/profile/:username" element={withLayout(<ProfilePage />)} />
 
-        {/* Agar koi seedha /profile pe jaye toh usay uski apni profile pe redirect karein */}
+        {/* If someone goes directly to /profile, redirect them to their own profile. */}
         <Route
           path="/profile"
           element={token ? <Navigate to={`/profile/${localStorage.getItem("username")}`} /> : <Navigate to="/login" />}
@@ -50,18 +49,18 @@ function App() {
 
         <Route path="/messages/:username" element={withLayout(<ChatPage />)} />
 
-        {/* NAYA: Saari conversations ki list */}
+        {/* NEW: List of all conversations. */}
         <Route path="/messages" element={withLayout(<MessagesListPage />)} />
 
         <Route path="/post/:postId" element={withLayout(<PostPage />)} />
 
-        {/* Hashtag page — #coding click karne pe yahan aayega */}
+        {/* Hashtag page — when someone clicks on #coding, they land here. */}
         <Route path="/hashtag/:tag" element={withLayout(<HashtagPage />)} />
 
-        {/* NAYA: Poori notifications list */}
+        {/* NEW: Full notifications list. */}
         <Route path="/notifications" element={withLayout(<NotificationsPage />)} />
 
-        {/* NAYA: Explore/Search page */}
+        {/* NEW: Explore/Search page. */}
         <Route path="/search" element={withLayout(<SearchPage />)} />
 
       </Routes>

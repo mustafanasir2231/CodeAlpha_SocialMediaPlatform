@@ -27,16 +27,15 @@ const handleSubmit = async (e) => {
   }
 
   try {
-    // API Call to Backend
+    // API call to the backend
     const response = await axios.post("http://localhost:5000/api/auth/register", {
-  username: formData.fullName, // Yahan 'username' hona chahiye
+  username: formData.fullName, // Should be 'username' here
   email: formData.email,
   password: formData.password,
 });
-// .
     
     alert("Account created successfully!");
-    navigate("/login"); // Login page par bhej dein
+    navigate("/login"); // Redirect to login page
   } catch (error) {
     console.error("Error:", error);
     alert("Registration failed: " + (error.response?.data?.message || "Server error"));

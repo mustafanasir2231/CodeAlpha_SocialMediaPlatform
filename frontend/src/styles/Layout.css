@@ -8,10 +8,7 @@
     background: var(--color-bg-page);
 }
 
-/* FIX: margin ab collapsed sidebar width ke barabar hai (pehle full width tha),
-   kyunke sidebar hover pe expand hoti hai aur content ke UPAR overlay hoti hai
-   (box-shadow ke sath), page reflow nahi karti. Agar margin full width rakha jata
-   to hover na karne par bhi content mein bara khaali gap reh jata. */
+
 .layout-content {
     flex: 1;
     margin-left: var(--sidebar-width-collapsed);
@@ -21,6 +18,6 @@
 @media (max-width: 640px) {
     .layout-content {
         margin-left: 0;
-        margin-bottom: 56px; /* bottom nav bar ki height */
+        margin-bottom: 56px; 
     }
 }

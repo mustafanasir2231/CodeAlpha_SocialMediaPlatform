@@ -5,7 +5,7 @@ import io from 'socket.io-client';
 
 const socket = io.connect("http://localhost:5000");
 
-// Instagram jaisi timestamp formatting
+// timestamp formatting
 const formatMessageTime = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -26,7 +26,7 @@ const formatMessageTime = (dateString) => {
     return `${dateLabel} · ${time}`;
 };
 
-// NAYA: Story reply ka chhota preview card — message bubble ke upar dikhega
+// NEW: Small preview card for story replies — displayed above the message bubble
 const StoryReplyPreview = ({ storyReply, isMine }) => {
     if (!storyReply || !storyReply.storyId) return null;
 
@@ -168,7 +168,7 @@ const ChatPage = () => {
         }, 1500);
     };
 
-    // Sirf sabse aakhri (latest) apni seen-hui message ke neeche "Seen" dikhana
+    // Only show "Seen" below the most recent (latest) message of mine that has been seen
     const myMessages = messages.filter(m => m.sender.username === myUsername);
     const lastSeenMyMessageId = [...myMessages].reverse().find(m => m.seen)?._id;
 
@@ -185,7 +185,7 @@ const ChatPage = () => {
                     return (
                         <div key={msg._id} style={{ display: 'flex', flexDirection: 'column', alignItems: isMine ? 'flex-end' : 'flex-start', margin: '6px 0' }}>
 
-                            {/* NAYA: Agar yeh message kisi story ka reply hai, to preview card dikhao */}
+                            {/* NEW: If this message is a reply to a story, show the preview card */}
                             <StoryReplyPreview storyReply={msg.storyReply} isMine={isMine} />
 
                             <div style={{ background: isMine ? '#0095f6' : '#f1f1f1', color: isMine ? '#fff' : '#000', padding: '8px 14px', borderRadius: '16px', maxWidth: '70%' }}>

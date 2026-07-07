@@ -16,7 +16,7 @@ const {
     getStoryComments
 } = require('../controllers/storyController');
 
-// Multer setup — story media (images/videos), same uploads folder jo posts use karta hai
+// Multer setup — story media (images/videos), using the same uploads folder as posts
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, path.join(__dirname, '../uploads'));
@@ -38,23 +38,23 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
     storage,
     fileFilter,
-    limits: { fileSize: 50 * 1024 * 1024 } // 50MB, posts jaisa
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB, same as posts
 });
 
-// ===== Static routes — hamesha /:id wale routes se UPAR =====
+// ===== Static routes — always place above /:id routes =====
 
-// Create story (text/image/video) — multer.single optional hai (text story ke liye file nahi aati)
+// Create story (text/image/video) — multer.single is optional (no file for text story)
 router.post('/create', authMiddleware, upload.single('media'), createStory);
 
-// Sab visible stories, grouped by user (feed ke liye)
+// All visible stories, grouped by user (for the feed)
 router.get('/feed', authMiddleware, getStoriesFeed);
 
-// Apni stories (My Story section ke liye)
+// My stories (for the My Story section)
 router.get('/my-stories', authMiddleware, getMyStories);
 
 // ===== Dynamic /:id routes =====
 
-router.get('/:id', authMiddleware, viewStory); // view + seen mark
+router.get('/:id', authMiddleware, viewStory); // view + mark as seen
 router.put('/like/:id', authMiddleware, toggleStoryLike);
 router.put('/edit/:id', authMiddleware, editStory);
 router.delete('/:id', authMiddleware, deleteStory);

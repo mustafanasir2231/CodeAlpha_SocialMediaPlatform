@@ -2,7 +2,8 @@ const Comment = require('../models/Comment');
 const Post = require('../models/Post');
 const User = require('../models/User');
 const { createNotification } = require('./notificationController');
-// 1. Add a Comment (ya reply, agar replyTo diya gaya ho)
+
+// 1. Add a Comment 
 exports.addComment = async (req, res) => {
   try {
     const { postId, text, replyTo } = req.body;
@@ -17,9 +18,8 @@ exports.addComment = async (req, res) => {
       replyTo: replyTo || null
     });
     const savedComment = await newComment.save();
-    // Notification logic: do scenario hain
-    // (a) Yeh reply hai → parent COMMENT ke owner ko batao, type = 'reply'
-    // (b) Yeh top-level comment hai → POST ke owner ko batao, type = 'comment'
+
+
     try {
       if (replyTo) {
         const parentComment = await Comment.findById(replyTo);
@@ -28,7 +28,7 @@ exports.addComment = async (req, res) => {
             recipientId: parentComment.userId,
             senderId: req.user.id,
             senderUsername: req.user.username,
-            type: 'reply', // FIX: pehle yahan 'comment' tha, isi liye galat message dikh raha tha
+            type: 'reply', 
             postId
           });
         }
@@ -48,15 +48,17 @@ exports.addComment = async (req, res) => {
         }
       }
     } catch (notifErr) {
-      console.error("Comment notification error:", notifErr); // notification fail ho to bhi comment save rahe
+      console.error("Comment notification error:", notifErr); 
     }
+
     res.status(201).json(savedComment);
   } catch (err) {
     console.error("Add Comment Error:", err);
     res.status(500).json({ error: "Failed to add comment" });
   }
 };
-// 2. Get All Comments for a Post — structured tareeqe se (top-level + unki replies)
+
+// 2. Get All Comments for a Post — in a structured way (top-level + their replies)
 exports.getComments = async (req, res) => {
   try {
     const allComments = await Comment.find({ postId: req.params.postId }).sort({ createdAt: 1 });
@@ -74,7 +76,8 @@ exports.getComments = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch comments" });
   }
 };
-// 3. Delete Comment (Sahi hai)
+
+// 3. Delete Comment
 exports.deleteComment = async (req, res) => {
   try {
     const comment = await Comment.findById(req.params.commentId);
@@ -89,7 +92,7 @@ exports.deleteComment = async (req, res) => {
   }
 };
 
-// NAYA: 4. Comment ya Reply ko Like/Unlike karna (toggle) — Post like jaisa hi pattern
+// NEW: 4. Like/Unlike a Comment or Reply (toggle) — same pattern as Post like
 exports.toggleCommentLike = async (req, res) => {
   try {
     const comment = await Comment.findById(req.params.commentId);
@@ -103,7 +106,7 @@ exports.toggleCommentLike = async (req, res) => {
     } else {
       await comment.updateOne({ $push: { likes: username } });
 
-      // Notification — sirf jab koi doosre ka comment like kare, apna nahi
+      // Notification — only when someone likes another's comment, not their own
       try {
         if (comment.userId.toString() !== req.user.id) {
           await createNotification({

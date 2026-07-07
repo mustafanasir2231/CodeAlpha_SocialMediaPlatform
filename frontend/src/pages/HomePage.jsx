@@ -28,12 +28,11 @@ const HomePage = () => {
     const [editingPostId, setEditingPostId] = useState(null);
     const [editContent, setEditContent] = useState("");
 
-    // NAYA: kis post ka "⋯" menu khula hai
+    // NEW: which post's "⋯" menu is open
     const [openMenuPostId, setOpenMenuPostId] = useState(null);
     const menuRef = useRef(null);
 
     const [savedPostIds, setSavedPostIds] = useState(new Set());
-    const [trendingTags, setTrendingTags] = useState([]);
 
     const [storyGroups, setStoryGroups] = useState([]);
     const [myStories, setMyStories] = useState([]);
@@ -63,15 +62,6 @@ const HomePage = () => {
             setSavedPostIds(ids);
         } catch (err) {
             console.error("Error fetching saved posts:", err);
-        }
-    };
-
-    const fetchTrendingTags = async () => {
-        try {
-            const res = await axios.get("http://localhost:5000/api/posts/trending-hashtags");
-            setTrendingTags(res.data);
-        } catch (err) {
-            console.error("Error fetching trending hashtags:", err);
         }
     };
 
@@ -107,7 +97,6 @@ const HomePage = () => {
     useEffect(() => {
         fetchPosts();
         fetchSavedPosts();
-        fetchTrendingTags();
         fetchStoriesFeed();
         fetchMyStories();
 
@@ -115,7 +104,6 @@ const HomePage = () => {
 
         socket.on('receive-post', (newPost) => {
             setPosts((prev) => [newPost, ...prev]);
-            fetchTrendingTags();
         });
 
         socket.on('post-deleted', (postId) => {
@@ -142,7 +130,7 @@ const HomePage = () => {
         };
     }, [userId]);
 
-    // NAYA: bahar click karne pe "⋯" menu band ho jaye
+    // NEW: close the "⋯" menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -205,7 +193,6 @@ const HomePage = () => {
             previews.forEach(p => URL.revokeObjectURL(p.url));
             setSelectedFiles([]);
             setPreviews([]);
-            fetchTrendingTags();
         } catch (err) {
             console.error(err);
             alert(err.response?.data?.error || "Failed to create post");
@@ -289,7 +276,6 @@ const HomePage = () => {
 
             setEditingPostId(null);
             setEditContent("");
-            fetchTrendingTags();
         } catch (err) {
             alert(err.response?.data?.error || "Failed to edit");
         }
@@ -332,16 +318,7 @@ const HomePage = () => {
                 onAvatarClick={handleAvatarClick}
             />
 
-            {trendingTags.length > 0 && (
-                <div className="trending-strip">
-                    <span className="trending-label">🔥 Trending:</span>
-                    {trendingTags.map(({ tag, count }) => (
-                        <Link key={tag} to={`/hashtag/${tag}`} className="trending-chip">
-                            #{tag} <span className="trending-count">({count})</span>
-                        </Link>
-                    ))}
-                </div>
-            )}
+            {/* NEW: Trending strip removed from here — will only appear on SearchPage */}
 
             <div className="post-composer">
                 <textarea
@@ -389,7 +366,7 @@ const HomePage = () => {
                                 <span className="post-card-username">{post.username}</span>
                             </Link>
 
-                            {/* NAYA: "⋯" menu — sirf apni post pe dikhta hai */}
+                            {/* NEW: "⋯" menu — only shown on own posts */}
                             {savedUsername === post.username && (
                                 <div className="post-menu-wrapper" ref={openMenuPostId === post._id ? menuRef : null}>
                                     <button
@@ -444,8 +421,7 @@ const HomePage = () => {
                                 )
                             )}
 
-                            {/* NAYA: Action row — like, comment, save sab ek line mein,
-                                save (bookmark) sabse right pe push karne ke liye margin-left auto class */}
+                            {/* NEW: Action row — like, comment, save all in one line, save (bookmark) pushed to the right using margin-left auto class */}
                             <div className="post-card-actions">
                                 <button
                                     className={`icon-btn ${post.likes?.includes(savedUsername) ? 'icon-btn-liked' : ''}`}

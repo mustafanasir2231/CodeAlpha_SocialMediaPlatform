@@ -1,11 +1,11 @@
 const jwt = require('jsonwebtoken');
 
 const authMiddleware = (req, res, next) => {
-  // Authorization header se token nikalna
+  // Extract token from Authorization header
   const authHeader = req.header('Authorization');
   if (!authHeader) return res.status(401).json({ error: "Access denied" });
 
-  // "Bearer <token>" format mein se sirf token nikalna
+  // Extract only the token from 'Bearer <token>' format
   const token = authHeader.replace('Bearer ', '');
   
   try {

@@ -223,7 +223,7 @@
     position: relative;
 }
 
-/* NAYA: "⋯" menu wrapper + dropdown */
+/* NEW: "⋯" menu wrapper + dropdown */
 .post-menu-wrapper {
     position: relative;
 }
@@ -338,7 +338,7 @@
 }
 
 /* Action row — like / comment / save icons in a single line.
-   NAYA: save icon ko sabse right pe push karne ke liye margin-left: auto */
+   NEW: use margin-left: auto to push the save icon to the far right */
 .post-card-actions {
     display: flex;
     align-items: center;

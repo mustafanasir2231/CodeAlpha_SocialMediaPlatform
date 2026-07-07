@@ -1,10 +1,9 @@
 const Notification = require('../models/Notification');
 const { emitToUser } = require('../utils/socket');
 
-// Internal helper — yeh function controllers (like, comment, follow, story) khud call karenge
-// Khud ko notification nahi bhejni (apni hi post like ki, apna hi comment kiya)
+// Internal helper — this function will be called by controllers (like, comment, follow, story) themselves
 const createNotification = async ({ recipientId, senderId, senderUsername, type, postId = null, storyId = null }) => {
-  if (recipientId.toString() === senderId.toString()) return; // khud ko notification nahi
+  if (recipientId.toString() === senderId.toString()) return; // don't send notification to self
 
   try {
     const notification = await Notification.create({
@@ -12,16 +11,16 @@ const createNotification = async ({ recipientId, senderId, senderUsername, type,
       sender: senderId,
       type,
       post: postId,
-      story: storyId // NAYA
+      story: storyId // NEW
     });
 
-    // Real-time: foran recipient ko bhej do
+    // Real-time: send to recipient immediately
     emitToUser(recipientId.toString(), 'new-notification', {
       _id: notification._id,
       type,
       senderUsername,
       post: postId,
-      story: storyId, // NAYA
+      story: storyId, // NEW
       isRead: false,
       createdAt: notification.createdAt
     });
@@ -30,7 +29,7 @@ const createNotification = async ({ recipientId, senderId, senderUsername, type,
   }
 };
 
-// GET /api/notifications — sab notifications (latest pehle)
+// GET /api/notifications — all notifications (latest first)
 exports.getNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find({ recipient: req.user.id })
@@ -45,7 +44,7 @@ exports.getNotifications = async (req, res) => {
   }
 };
 
-// GET /api/notifications/unread-count — badge ke liye sirf count
+// GET /api/notifications/unread-count — just the count for the badge
 exports.getUnreadCount = async (req, res) => {
   try {
     const count = await Notification.countDocuments({ recipient: req.user.id, isRead: false });
@@ -55,7 +54,7 @@ exports.getUnreadCount = async (req, res) => {
   }
 };
 
-// PUT /api/notifications/mark-read — bell dropdown khulte hi sab read mark
+// PUT /api/notifications/mark-read — mark all as read when bell dropdown is opened
 exports.markAllRead = async (req, res) => {
   try {
     await Notification.updateMany({ recipient: req.user.id, isRead: false }, { isRead: true });

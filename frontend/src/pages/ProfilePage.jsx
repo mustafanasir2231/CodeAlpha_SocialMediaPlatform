@@ -12,7 +12,6 @@ const ProfilePage = () => {
     const { username: urlUsername } = useParams();
     const [myPosts, setMyPosts] = useState([]);
     const [status, setStatus] = useState('none');
-    const [pendingRequests, setPendingRequests] = useState([]);
     const [counts, setCounts] = useState({ followersCount: 0, followingCount: 0 });
     const [modalData, setModalData] = useState(null);
     const [followers, setFollowers] = useState([]);
@@ -41,7 +40,8 @@ const ProfilePage = () => {
         if (userId) socket.emit('register-user', userId);
 
         socket.on('new-follow-request', () => {
-            fetchPendingRequests();
+            // NEW: Pending requests UI is now on the NotificationsPage, so we only keep this listener
+            // for future use — no state update needed here.
         });
 
         socket.on('follow-was-accepted', () => {
@@ -65,15 +65,6 @@ const ProfilePage = () => {
             socket.off('online-users');
         };
     }, [userId]);
-
-    const fetchPendingRequests = async () => {
-        try {
-            const res = await axios.get('http://localhost:5000/api/follow/pending', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setPendingRequests(res.data);
-        } catch (err) { console.error(err); }
-    };
 
     const fetchCounts = async () => {
         if (!token) return;
@@ -133,7 +124,6 @@ const ProfilePage = () => {
                 }
 
                 if (isMyProfile && token) {
-                    fetchPendingRequests();
                     fetchFollowers();
                 }
 
@@ -188,19 +178,6 @@ const ProfilePage = () => {
             setStatus('none');
         } catch (err) {
             alert("Failed to cancel request");
-        }
-    };
-
-    const handleAccept = async (requestId, requesterUsername) => {
-        try {
-            await axios.put(`http://localhost:5000/api/follow/accept/${requestId}`, {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setPendingRequests(prev => prev.filter(r => r._id !== requestId));
-            setCounts(prev => ({ ...prev, followersCount: prev.followersCount + 1 }));
-            setFollowers(prev => [...prev, { username: requesterUsername }]);
-        } catch (err) {
-            alert("Failed to accept request");
         }
     };
 
@@ -288,7 +265,7 @@ const ProfilePage = () => {
 
     return (
         <div className="profile-page">
-            {/* ===== Header — Instagram jaisa horizontal layout: avatar left, info right ===== */}
+            {/* ===== Header — Instagram‑style horizontal layout: avatar on left, info on right ===== */}
             <div className="profile-header">
                 <div className="profile-avatar-wrapper">
                     <div
@@ -327,7 +304,7 @@ const ProfilePage = () => {
                         <h1 className="profile-username">{urlUsername}</h1>
                     </div>
 
-                    {/* NAYA: Follow/Message buttons apni alag row mein — Instagram jaisa */}
+                    {/* NEW: Follow/Message buttons in their own row — like Instagram */}
                     {!isMyProfile && (
                         <div className="profile-actions">
                             {status === 'none' && (
@@ -401,22 +378,7 @@ const ProfilePage = () => {
                 </div>
             </div>
 
-            {/* Pending Follow Requests — sirf apni profile pe */}
-            {isMyProfile && pendingRequests.length > 0 && (
-                <div className="profile-requests-box">
-                    <h3 className="profile-requests-title">🔔 Follow Requests ({pendingRequests.length})</h3>
-                    {pendingRequests.map(req => (
-                        <div key={req._id} className="profile-request-row">
-                            <span>{req.requester?.username}</span>
-                            <button className="btn btn-primary btn-sm" onClick={() => handleAccept(req._id, req.requester?.username)}>
-                                Accept
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {/* ===== Tabs — icon-based, Instagram jaisa ===== */}
+            {/* ===== Tabs — icon‑based, Instagram‑style ===== */}
             {isMyProfile && (
                 <div className="profile-tabs">
                     <button
@@ -434,7 +396,7 @@ const ProfilePage = () => {
                 </div>
             )}
 
-            {/* ===== Posts grid — square thumbnails, 3 columns ===== */}
+            {/* ===== Posts grid — square thumbnails, 3‑column layout ===== */}
             {(activeTab === 'posts' || !isMyProfile) && (
                 <div className="profile-grid">
                     {myPosts.length > 0 ? (
@@ -457,7 +419,7 @@ const ProfilePage = () => {
                 </div>
             )}
 
-            {/* Saved grid — sirf apni profile pe */}
+            {/* Saved grid — only on your own profile */}
             {activeTab === 'saved' && isMyProfile && (
                 <div className="profile-grid">
                     {loadingSaved ? (

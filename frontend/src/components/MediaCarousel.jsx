@@ -31,7 +31,7 @@ const MediaCarousel = ({ media }) => {
                 )}
             </div>
 
-            {/* Prev / Next buttons — sirf multiple media pe dikhao */}
+            {/* Prev / Next buttons — only show when multiple media items exist */}
             {media.length > 1 && (
                 <>
                     <button

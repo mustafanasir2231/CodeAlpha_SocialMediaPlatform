@@ -5,7 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 import MediaCarousel from '../components/MediaCarousel';
 import HashtagText from '../components/HashtagText';
 
-// Is hashtag ki sab posts dikhata hai — jab koi #coding jaisa hashtag click kare to yahan aata hai
+// Displays all posts for this hashtag — when someone clicks on a hashtag like #coding, they land here
 const HashtagPage = () => {
     const { tag } = useParams();
     const navigate = useNavigate();

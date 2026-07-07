@@ -36,11 +36,11 @@ exports.login = async (req, res) => {
             { expiresIn: '7d' }
         );
 
-        // userId alag se bhi bhej rahe hain taake frontend localStorage mein save kare
+        // Sending the userId separately so the frontend can save it in localStorage.
         res.status(200).json({ 
             token, 
             user: { 
-                id: user._id,       // ← real-time socket ke liye zaroori
+                id: user._id,     
                 username: user.username 
             } 
         });

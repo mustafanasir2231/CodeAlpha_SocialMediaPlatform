@@ -203,7 +203,7 @@
     border-bottom: 1px solid #ffe082;
 }
 
-/* ===== Tabs — Instagram jaisa, icon + uppercase label, top border on active ===== */
+/* ===== Tabs —  icon + uppercase label, top border on active ===== */
 .profile-tabs {
     display: flex;
     justify-content: flex-start;
@@ -233,7 +233,7 @@
     border-top: 1px solid var(--color-text-primary);
 }
 
-/* ===== Posts grid — square thumbnails, Instagram jaisa ===== */
+/* ===== Posts grid — square thumbnails, ===== */
 .profile-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -293,7 +293,7 @@
     padding: var(--space-2xl) 0;
 }
 
-/* ===== Responsive — mobile pe header column ban jata hai ===== */
+/* ===== Responsive — on mobile, the header becomes a column ===== */
 @media (max-width: 600px) {
     .profile-header {
         gap: var(--space-lg);

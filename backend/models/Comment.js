@@ -4,10 +4,10 @@ const commentSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   username: { type: String, required: true },
   text: { type: String, required: true },
-  // replyTo: null ka matlab hai ye main comment hai, 
-  // agar ismein kisi comment ki ID hogi, to ye uska "reply" hoga
+  // replyTo: null means this is a main (top-level) comment,
+  // if it contains a comment ID, then this is a "reply" to that comment
   replyTo: { type: mongoose.Schema.Types.ObjectId, ref: 'Comment', default: null },
-  // NAYA: comment/reply ko like karne wale usernames
+  // NEW: usernames who liked this comment/reply
   likes: { type: [String], default: [] }
 }, { timestamps: true });
 module.exports = mongoose.model('Comment', commentSchema);

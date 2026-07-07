@@ -4,8 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import '../styles/MessagesListPage.css';
 
-// Saari conversations ki list — Instagram DM inbox jaisa.
-// Backend route already maujood hai: GET /api/messages/conversations
+
 const MessagesListPage = () => {
     const navigate = useNavigate();
     const [conversations, setConversations] = useState([]);

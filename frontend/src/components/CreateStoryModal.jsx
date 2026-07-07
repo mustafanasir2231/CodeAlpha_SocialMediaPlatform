@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
 
-// Background color options jaise Instagram text-story mein hote hain
+// Background color options
 const BG_COLORS = ['#0095f6', '#ed4956', '#fa7e1e', '#962fbf', '#27ae60', '#1a1a1a'];
 
 const CreateStoryModal = ({ onClose, onStoryCreated }) => {
@@ -177,7 +177,7 @@ const CreateStoryModal = ({ onClose, onStoryCreated }) => {
                     </div>
                 )}
 
-                {/* Privacy + Submit — sirf jab koi mode chosen ho */}
+                {/* Privacy + Submit — only when a mode is chosen */}
                 {mode !== 'choose' && (
                     <>
                         <div style={{ marginBottom: '15px' }}>

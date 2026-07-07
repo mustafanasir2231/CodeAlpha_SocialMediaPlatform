@@ -3,8 +3,7 @@ import Sidebar from './Sidebar';
 import CreateStoryModal from './CreateStoryModal';
 import '../styles/Layout.css';
 
-// Layout har page ke around wrap hota hai (App.jsx mein) — sidebar hamesha fixed
-// rehta hai, sirf andar ka content (children) badalta hai jab route change ho.
+
 const Layout = ({ children }) => {
     const [showCreateStory, setShowCreateStory] = useState(false);
 
@@ -16,7 +15,7 @@ const Layout = ({ children }) => {
                 {children}
             </main>
 
-            {/* Sidebar ke "Create" button se story modal kahin se bhi khul sake */}
+            {/* The "Create" button in the sidebar can open the story modal from anywhere */}
             {showCreateStory && (
                 <CreateStoryModal
                     onClose={() => setShowCreateStory(false)}

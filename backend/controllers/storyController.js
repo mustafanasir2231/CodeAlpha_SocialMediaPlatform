@@ -5,9 +5,9 @@ const User = require('../models/User');
 const { createNotification } = require('./notificationController');
 const { emitToUser } = require('../utils/socket');
 
-// Helper: check karta hai ke viewerId, ownerId ka follower hai ya nahi (accepted status)
+// Helper: checks whether viewerId is a follower of ownerId (accepted status)
 const isFollowerOf = async (viewerId, ownerId) => {
-    if (viewerId.toString() === ownerId.toString()) return true; // apni hi story
+    if (viewerId.toString() === ownerId.toString()) return true; // own story
     const rel = await FollowRequest.findOne({
         requester: viewerId,
         recipient: ownerId,
@@ -16,7 +16,7 @@ const isFollowerOf = async (viewerId, ownerId) => {
     return !!rel;
 };
 
-// 1. Story create karna (text / image / video)
+// 1. Create story (text / image / video)
 exports.createStory = async (req, res) => {
     try {
         const { type, text, backgroundColor, visibility } = req.body;
@@ -30,7 +30,7 @@ exports.createStory = async (req, res) => {
             if (!req.file) return res.status(400).json({ error: "Media file required for image/video story" });
             mediaUrl = `http://localhost:5000/uploads/${req.file.filename}`;
         } else {
-            // Text story — text content zaroori hai
+            // Text story — text content is required
             if (!text?.trim()) return res.status(400).json({ error: "Text content required for text story" });
         }
 
@@ -52,27 +52,25 @@ exports.createStory = async (req, res) => {
     }
 };
 
-// 2. Feed ke liye — sab active (non-expired, TTL khud handle karta hai) stories,
-// grouped by user, sirf jo dekhne ka haq rakhta ho (privacy check)
+// 2. For feed — all active (non-expired, TTL handles itself) stories,
+
 exports.getStoriesFeed = async (req, res) => {
     try {
         const myId = req.user.id;
         const allStories = await Story.find().sort({ createdAt: -1 });
 
-        // Privacy filter — har story ke liye check karo ke main dekh sakta hoon ya nahi
+        // Privacy filter — check for each story whether I can view it
         const visibleStories = [];
         for (const story of allStories) {
             if (story.visibility === 'everyone') {
                 visibleStories.push(story);
             } else {
-                // 'followers' visibility — sirf owner ke followers (ya khud owner) dekh sakte hain
+                // 'followers' visibility — only the owner's followers (or the owner themselves) can view
                 const allowed = await isFollowerOf(myId, story.userId);
                 if (allowed) visibleStories.push(story);
             }
         }
 
-        // Username ke hisab se group karo — taake frontend ek avatar circle ke peeche
-        // us user ki saari stories rakh sake
         const grouped = {};
         visibleStories.forEach(story => {
             if (!grouped[story.username]) {
@@ -85,7 +83,7 @@ exports.getStoriesFeed = async (req, res) => {
             grouped[story.username].stories.push(story);
         });
 
-        // Har group mein stories ko purani→nayi order mein rakho (viewer sequence ke liye)
+        // Sort stories in each group from oldest to newest (for viewer sequence)
         const result = Object.values(grouped).map(g => ({
             ...g,
             stories: g.stories.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
@@ -98,7 +96,7 @@ exports.getStoriesFeed = async (req, res) => {
     }
 };
 
-// 3. Apni stories — ProfilePage ya "My Story" ke liye
+// 3. My stories — for ProfilePage or 'My Story'
 exports.getMyStories = async (req, res) => {
     try {
         const stories = await Story.find({ userId: req.user.id }).sort({ createdAt: 1 });
@@ -108,7 +106,7 @@ exports.getMyStories = async (req, res) => {
     }
 };
 
-// 4. Single story dekhna — saath mein "seen" mark karna (agar owner khud nahi hai)
+// 4. View a single story — also mark it as 'seen' (if viewer is not the owner)
 exports.viewStory = async (req, res) => {
     try {
         const story = await Story.findById(req.params.id);
@@ -120,14 +118,14 @@ exports.viewStory = async (req, res) => {
             if (!allowed) return res.status(403).json({ error: "This story is only visible to followers" });
         }
 
-        // Seen mark karo — sirf jab dekhne wala owner na ho, aur pehle se list mein na ho
+        // Mark as seen — only if viewer is not the owner and not already in the list
         const myUsername = req.user.username;
         const alreadySeen = story.seenBy.some(s => s.username === myUsername);
         if (story.username !== myUsername && !alreadySeen) {
             story.seenBy.push({ username: myUsername, seenAt: new Date() });
             await story.save();
 
-            // Real-time: owner ko batao ke kisi ne dekh li (uska "seen by" list refresh ho sake)
+            // Real-time: notify the owner that someone viewed it 
             emitToUser(story.userId.toString(), 'story-seen', {
                 storyId: story._id.toString(),
                 viewerUsername: myUsername
@@ -141,7 +139,7 @@ exports.viewStory = async (req, res) => {
     }
 };
 
-// 5. Story ko Like/Unlike karna (toggle)
+// 5. Toggle like/unlike on story
 exports.toggleStoryLike = async (req, res) => {
     try {
         const story = await Story.findById(req.params.id);
@@ -176,7 +174,7 @@ exports.toggleStoryLike = async (req, res) => {
     }
 };
 
-// 6. Story ko Edit karna — SIRF text story (caption/background change)
+// 6. Edit story — ONLY text story 
 exports.editStory = async (req, res) => {
     try {
         const { text, backgroundColor } = req.body;
@@ -204,7 +202,7 @@ exports.editStory = async (req, res) => {
     }
 };
 
-// 7. Story Delete karna
+// 7. Delete story
 exports.deleteStory = async (req, res) => {
     try {
         const story = await Story.findById(req.params.id);
@@ -215,7 +213,7 @@ exports.deleteStory = async (req, res) => {
         }
 
         await Story.findByIdAndDelete(req.params.id);
-        // Saath mein us story ke comments bhi clean kar do
+        // Also delete the story's comments
         await StoryComment.deleteMany({ storyId: req.params.id });
 
         res.json({ message: "Story deleted successfully" });
@@ -225,7 +223,7 @@ exports.deleteStory = async (req, res) => {
     }
 };
 
-// 8. "Seen by" list — apni story pe kisne dekha (sirf owner dekh sakta hai)
+// 8. "Seen by" list — who viewed your story (only owner can see)
 exports.getSeenBy = async (req, res) => {
     try {
         const story = await Story.findById(req.params.id);
@@ -235,12 +233,11 @@ exports.getSeenBy = async (req, res) => {
             return res.status(403).json({ error: "Unauthorized" });
         }
 
-        // FIX: seenBy ab {username, seenAt} objects ka array hai (pehle sirf strings the,
-        // isliye seen time track nahi ho raha tha)
+        // FIX: seenBy is now an array of {username, seenAt} objects
         const usernames = story.seenBy.map(s => s.username);
         const users = await User.find({ username: { $in: usernames } }).select('username profilePic');
 
-        // Har user ke sath uska seenAt time jod do
+        // Attach each user's seenAt time
         const viewers = users.map(u => {
             const seenEntry = story.seenBy.find(s => s.username === u.username);
             return {
@@ -251,7 +248,7 @@ exports.getSeenBy = async (req, res) => {
             };
         });
 
-        // Latest dekhne walay pehle
+        // Latest viewers first
         viewers.sort((a, b) => new Date(b.seenAt) - new Date(a.seenAt));
 
         res.json(viewers);
@@ -263,7 +260,7 @@ exports.getSeenBy = async (req, res) => {
 
 // ===== Story Comments =====
 
-// 9. Story pe comment add karna (public thread)
+// 9. Add comment to story (public thread)
 exports.addStoryComment = async (req, res) => {
     try {
         const { text } = req.body;
@@ -272,7 +269,7 @@ exports.addStoryComment = async (req, res) => {
         if (!story) return res.status(404).json({ error: "Story not found" });
         if (!text?.trim()) return res.status(400).json({ error: "Comment text required" });
 
-        // Privacy check — agar followers-only story hai to comment karne walay ko bhi follower hona chahiye
+        // Privacy check — if story is followers-only, the commenter must also be a follower
         if (story.visibility === 'followers') {
             const allowed = await isFollowerOf(req.user.id, story.userId);
             if (!allowed) return res.status(403).json({ error: "You can't comment on this story" });
@@ -285,7 +282,7 @@ exports.addStoryComment = async (req, res) => {
             text: text.trim()
         });
 
-        // NAYA: story document mein comment count badhao — frontend ko alag fetch nahi karna padega
+        // NEW: increment comment count in story document — so frontend doesn't need a separate fetch
         await Story.findByIdAndUpdate(story._id, { $inc: { commentCount: 1 } });
 
         try {
@@ -307,7 +304,7 @@ exports.addStoryComment = async (req, res) => {
     }
 };
 
-// 10. Story ke comments fetch karna
+// 10. Fetch comments for a story
 exports.getStoryComments = async (req, res) => {
     try {
         const comments = await StoryComment.find({ storyId: req.params.id }).sort({ createdAt: 1 });

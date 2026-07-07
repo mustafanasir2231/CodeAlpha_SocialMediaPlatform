@@ -3,9 +3,9 @@ const User = require('../models/User');
 const { emitToUser } = require('../utils/socket');
 const { createNotification } = require('./notificationController');
 
-// 1. Follow Request Bhejna
+// 1. Send Follow Request
 exports.sendFollowRequest = async (req, res) => {
-  const { recipientId } = req.body; // yeh actually username hai
+  const { recipientId } = req.body; 
   const requesterId = req.user.id;
 
   try {
@@ -22,12 +22,12 @@ exports.sendFollowRequest = async (req, res) => {
     const newRequest = new FollowRequest({ requester: requesterId, recipient: recipientUser._id });
     await newRequest.save();
 
-    // Real-time: doosre user ko foran batao
+    // Real-time: immediately notify the other user
     emitToUser(recipientUser._id.toString(), 'new-follow-request', {
       requesterUsername: req.user.username
     });
 
-    // Notification banao
+    // Create notification
     await createNotification({
       recipientId: recipientUser._id,
       senderId: requesterId,
@@ -37,10 +37,7 @@ exports.sendFollowRequest = async (req, res) => {
 
     res.status(200).json({ message: "Request sent successfully!" });
   } catch (err) {
-    // NAYA: FIX — agar database ka unique index (FollowRequest.js mein) duplicate
-    // ko reject kare (race condition wali doosri request), MongoDB error code 11000
-    // dega. Yeh case ko alag se handle karte hain taake user ko "already sent" ka
-    // sahi, samajhne wala message mile, na ke generic server error.
+
     if (err.code === 11000) {
       return res.status(400).json({ error: "Request already sent" });
     }
@@ -49,16 +46,16 @@ exports.sendFollowRequest = async (req, res) => {
   }
 };
 
-// 2. Pending Requests Dekhna
+// 2. View Pending Requests
 exports.getPendingRequests = async (req, res) => {
   try {
     const requests = await FollowRequest.find({ recipient: req.user.id, status: 'pending' })
-      .populate('requester', 'username profilePic'); // NAYA: profilePic add
+      .populate('requester', 'username profilePic'); 
     res.json(requests);
   } catch (err) { res.status(500).json({ error: "Error fetching requests" }); }
 };
 
-// 3. Request Accept Karna
+// 3. Accept Request
 exports.acceptRequest = async (req, res) => {
   const { requestId } = req.params;
   try {
@@ -66,16 +63,16 @@ exports.acceptRequest = async (req, res) => {
       requestId,
       { status: 'accepted' },
       { new: true }
-    ).populate('requester recipient', 'username profilePic'); // NAYA: profilePic add
+    ).populate('requester recipient', 'username profilePic'); 
 
     if (!updatedRequest) return res.status(404).json({ error: "Request not found" });
 
-    // Real-time: requester ko batao ke accept ho gaya
+    // Real-time: notify the requester that they were accepted
     emitToUser(updatedRequest.requester._id.toString(), 'follow-was-accepted', {
       accepterUsername: updatedRequest.recipient.username
     });
 
-    // Notification banao — accepter (recipient) requester ko batata hai
+    // Create notification — the accepter (recipient) informs the requester
     await createNotification({
       recipientId: updatedRequest.requester._id,
       senderId: updatedRequest.recipient._id,
@@ -90,7 +87,20 @@ exports.acceptRequest = async (req, res) => {
   }
 };
 
-// 4. Follow Status Check
+//  3b. Decline/Delete Request 
+exports.declineRequest = async (req, res) => {
+  const { requestId } = req.params;
+  try {
+    const deleted = await FollowRequest.findOneAndDelete({ _id: requestId, recipient: req.user.id });
+    if (!deleted) return res.status(404).json({ error: "Request not found" });
+    res.json({ message: "Request declined" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to decline request" });
+  }
+};
+
+// 4. Check Follow Status
 exports.getFollowStatus = async (req, res) => {
   const { username } = req.params;
   const myId = req.user.id;
@@ -108,7 +118,7 @@ exports.getFollowStatus = async (req, res) => {
   }
 };
 
-// 5. Followers List
+// 5. Get Followers List
 exports.getFollowers = async (req, res) => {
   const { username } = req.params;
   try {
@@ -123,7 +133,7 @@ exports.getFollowers = async (req, res) => {
   }
 };
 
-// 6. Following List
+// 6. Get Following List
 exports.getFollowing = async (req, res) => {
   const { username } = req.params;
   try {
@@ -138,7 +148,7 @@ exports.getFollowing = async (req, res) => {
   }
 };
 
-// 7. Followers/Following Counts
+// 7. Get Followers/Following Counts
 exports.getFollowCounts = async (req, res) => {
   const { username } = req.params;
   try {
@@ -153,7 +163,7 @@ exports.getFollowCounts = async (req, res) => {
   }
 };
 
-// 8. Unfollow
+// 8. Unfollow User
 exports.unfollowUser = async (req, res) => {
   const { username } = req.params;
   const myId = req.user.id;
@@ -162,7 +172,7 @@ exports.unfollowUser = async (req, res) => {
     const targetUser = await User.findOne({ username });
     if (!targetUser) return res.status(404).json({ error: "User not found" });
 
-    // Dono direction check karo — chahe maine follow kiya ho, ya mujhe follow kiya gaya ho
+    // Check both directions — whether I followed them or they followed me
     const deleted = await FollowRequest.findOneAndDelete({
       $or: [
         { requester: myId, recipient: targetUser._id },

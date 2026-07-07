@@ -1,0 +1,24 @@
+/* ============================================
+   POST-PAGE.CSS
+============================================ */
+
+.post-page {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-md);
+}
+
+.post-page-status {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: var(--space-2xl) var(--space-lg);
+    text-align: center;
+    color: var(--color-text-secondary);
+}
+
+
+
+.post-delete-btn {
+    display: block;
+    margin: var(--space-sm) 0;
+}

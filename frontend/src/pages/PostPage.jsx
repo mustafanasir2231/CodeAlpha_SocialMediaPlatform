@@ -3,7 +3,12 @@ import axios from 'axios';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import io from 'socket.io-client';
+import { Heart, Bookmark } from 'lucide-react';
 import CommentSection from '../components/CommentSection';
+import MediaCarousel from '../components/MediaCarousel';
+import HashtagText from '../components/HashtagText';
+import '../styles/HomePage.css';
+import '../styles/PostPage.css';
 
 const socket = io.connect("http://localhost:5000");
 
@@ -14,7 +19,10 @@ const PostPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const [isSaved, setIsSaved] = useState(false);
+
     const savedUsername = localStorage.getItem("username");
+    const token = localStorage.getItem("token")?.replace(/^"|"$/g, '');
 
     const fetchPost = async () => {
         try {
@@ -29,10 +37,22 @@ const PostPage = () => {
         }
     };
 
+    const fetchSaveStatus = async () => {
+        if (!token) return;
+        try {
+            const res = await axios.get(`http://localhost:5000/api/users/save-status/${postId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setIsSaved(res.data.saved);
+        } catch (err) {
+            console.error("Error fetching save status:", err);
+        }
+    };
+
     useEffect(() => {
         fetchPost();
+        fetchSaveStatus();
 
-        // Real-time: agar yeh post delete ho jaye jab koi isay dekh raha ho
         const handleDeleted = (deletedId) => {
             if (deletedId === postId) {
                 setError("This post has been deleted.");
@@ -40,7 +60,6 @@ const PostPage = () => {
             }
         };
 
-        // Real-time: like update
         const handleLikeUpdate = (updatedPost) => {
             if (updatedPost._id === postId) {
                 setPost(updatedPost);
@@ -66,6 +85,18 @@ const PostPage = () => {
         }
     };
 
+    const handleSaveToggle = async () => {
+        if (!token) return navigate("/login");
+        try {
+            const res = await axios.put(`http://localhost:5000/api/users/save/${postId}`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setIsSaved(res.data.saved);
+        } catch (err) {
+            alert("Failed to save post");
+        }
+    };
+
     const handleDelete = async () => {
         if (window.confirm("Are you sure you want to delete this post?")) {
             try {
@@ -81,55 +112,81 @@ const PostPage = () => {
     };
 
     if (loading) {
-        return <div style={{ padding: '40px', textAlign: 'center' }}>Loading post...</div>;
+        return <div className="post-page-status">Loading post...</div>;
     }
 
     if (error || !post) {
         return (
-            <div style={{ padding: '40px', textAlign: 'center' }}>
-                <p style={{ color: '#888' }}>{error || "Post not found."}</p>
-                <button onClick={() => navigate("/")}>Back to Feed</button>
+            <div className="post-page-status">
+                <p>{error || "Post not found."}</p>
+                <button className="btn btn-outline" onClick={() => navigate("/")}>Back to Feed</button>
             </div>
         );
     }
 
     return (
-        <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
-            <button onClick={() => navigate(-1)} style={{ marginBottom: '20px' }}>← Back</button>
-
-            <div className="post-card" style={{ border: '1px solid #ccc', padding: '15px', borderRadius: '8px' }}>
-                <Link to={`/profile/${post.username}`} style={{ textDecoration: 'none', color: '#333' }}>
-                    <h3>{post.username}</h3>
-                </Link>
-
-                <p>{post.content}</p>
-
-                <div className="likes-section" style={{ marginTop: '10px' }}>
-                    <button onClick={handleLike} style={{ cursor: 'pointer' }}>
-                        {post.likes?.includes(savedUsername) ? "❤️ Unlike" : "🤍 Like"}
-                    </button>
-                    <p>Likes: {post.likes?.length || 0}</p>
-                    {post.likes?.length > 0 && (
-                        <small>
-                            Liked by: {post.likes[0]} {post.likes.length > 1 ? `and ${post.likes.length - 1} others` : ""}
-                        </small>
-                    )}
+        <div className="post-page">
+            <article className="post-card">
+                <div className="post-card-header">
+                    <Link to={`/profile/${post.username}`} className="post-card-author">
+                        <div className="post-card-avatar">{post.username?.[0]?.toUpperCase()}</div>
+                        <span className="post-card-username">{post.username}</span>
+                    </Link>
                 </div>
 
-                {savedUsername === post.username && (
-                    <button onClick={handleDelete} style={{ color: 'white', backgroundColor: 'red', marginTop: '10px' }}>
-                        Delete
-                    </button>
+                {post.media?.length > 0 && (
+                    <div className="post-card-media">
+                        <MediaCarousel media={post.media} />
+                    </div>
                 )}
 
-                <div style={{ marginTop: '15px', borderTop: '1px solid #eee', paddingTop: '10px' }}>
-                    <CommentSection postId={post._id} socket={socket} />
-                </div>
+                <div className="post-card-body">
+                    <div className="post-card-actions">
+                        <button
+                            className={`icon-btn ${post.likes?.includes(savedUsername) ? 'icon-btn-liked' : ''}`}
+                            onClick={handleLike}
+                        >
+                            <Heart size={22} fill={post.likes?.includes(savedUsername) ? 'currentColor' : 'none'} />
+                        </button>
 
-                <small style={{ color: '#888', display: 'block', marginTop: '5px' }}>
-                    {post.createdAt ? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true }) : "Just now"}
-                </small>
-            </div>
+                        <CommentSection postId={post._id} socket={socket} />
+
+                        <button
+                            className={`icon-btn post-action-save ${isSaved ? 'icon-btn-active' : ''}`}
+                            onClick={handleSaveToggle}
+                            title={isSaved ? "Unsave post" : "Save post"}
+                        >
+                            <Bookmark size={20} fill={isSaved ? 'currentColor' : 'none'} />
+                        </button>
+                    </div>
+
+                    {/* FIX: likes count + "Liked by" now appear immediately after the icons, before the caption  */}
+                    <p className="post-card-likes">{post.likes?.length || 0} likes</p>
+                    {post.likes?.length > 0 && (
+                        <p className="post-card-liked-by">
+                            Liked by <strong>{post.likes[0]}</strong>
+                            {post.likes.length > 1 ? ` and ${post.likes.length - 1} others` : ""}
+                        </p>
+                    )}
+
+                    {post.content && (
+                        <p className="post-card-caption">
+                            <span className="post-card-caption-username">{post.username}</span>{' '}
+                            <HashtagText text={post.content} />
+                        </p>
+                    )}
+
+                    {savedUsername === post.username && (
+                        <button className="btn btn-danger btn-sm post-delete-btn" onClick={handleDelete}>
+                            Delete Post
+                        </button>
+                    )}
+
+                    <span className="post-card-time">
+                        {post.createdAt ? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true }) : "Just now"}
+                    </span>
+                </div>
+            </article>
         </div>
     );
 };

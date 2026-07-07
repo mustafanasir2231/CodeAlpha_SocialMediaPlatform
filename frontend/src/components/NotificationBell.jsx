@@ -34,12 +34,12 @@ const NotificationBell = ({ socket }) => {
         }
     };
 
-    // Shuru mein sirf count load karo (badge ke liye)
+    // Initially load only the count (for the badge)
     useEffect(() => {
         if (token) fetchUnreadCount();
     }, [token]);
 
-    // Real-time: nayi notification aane pe foran badge + list update
+    // Real-time: on new notification, update badge and list immediately
     useEffect(() => {
         if (!socket) return;
 
@@ -51,7 +51,7 @@ const NotificationBell = ({ socket }) => {
                     type: notif.type,
                     sender: { username: notif.senderUsername },
                     post: notif.post,
-                    story: notif.story, // NAYA
+                    story: notif.story, // NEW
                     isRead: false,
                     createdAt: notif.createdAt
                 },
@@ -59,13 +59,11 @@ const NotificationBell = ({ socket }) => {
             ]);
         };
 
-        // FIX: agar socket disconnect/reconnect ho jaye (server restart, network blip),
-        // userId dobara register karo — warna server ko pata nahi chalta yeh socket kis user ka hai
-        // aur real-time events miss ho jaate hain jab tak page refresh na ho.
+       
         const handleReconnect = () => {
             const userId = localStorage.getItem("userId");
             if (userId) socket.emit('register-user', userId);
-            fetchUnreadCount(); // reconnect hote hi latest count bhi sync kar lo
+            fetchUnreadCount(); // also sync the latest count on reconnect
         };
 
         socket.on('new-notification', handleNewNotification);
@@ -77,7 +75,7 @@ const NotificationBell = ({ socket }) => {
         };
     }, [socket]);
 
-    // Bell pe click — dropdown khol/band karo, khulte hi list load karo aur read mark karo
+    // On bell click — toggle dropdown; when opened, load list and mark as read
     const handleBellClick = async () => {
         const opening = !isOpen;
         setIsOpen(opening);
@@ -85,7 +83,7 @@ const NotificationBell = ({ socket }) => {
         if (opening) {
             await fetchNotifications();
             if (unreadCount > 0) {
-                setUnreadCount(0); // badge foran clear karo
+                setUnreadCount(0); // clear badge immediately
                 try {
                     await axios.put("http://localhost:5000/api/notifications/mark-read", {}, {
                         headers: { Authorization: `Bearer ${token}` }
@@ -97,7 +95,7 @@ const NotificationBell = ({ socket }) => {
         }
     };
 
-    // Bahar click karne pe dropdown band ho jaye
+    // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -116,8 +114,8 @@ const NotificationBell = ({ socket }) => {
             case 'comment-like': return 'liked your comment';
             case 'follow_request': return 'sent you a follow request';
             case 'follow_accept': return 'accepted your follow request';
-            // NAYA: story-related notifications — pehle yeh cases missing the,
-            // isliye getMessage khali string return karta tha aur sirf naam dikhta tha
+            // NEW: story-related notifications — these cases were missing before,
+            // so getMessage returned an empty string and only the name was displayed
             case 'story_like': return 'liked your story';
             case 'story_comment': return 'commented on your story';
             case 'story_reply': return 'replied to your story';
@@ -133,8 +131,6 @@ const NotificationBell = ({ socket }) => {
             const postId = typeof notif.post === 'object' ? notif.post._id : notif.post;
             navigate(`/post/${postId}`);
         }
-        // NAYA: story notifications — story expire/delete ho sakti hai isliye seedha viewer nahi
-        // khol rahe (woh HomePage context se best khulta hai); profile pe le jaate hain.
         else if ((notif.type === 'story_like' || notif.type === 'story_comment' || notif.type === 'story_reply')) {
             navigate(`/profile/${notif.sender.username}`);
         }

@@ -12,8 +12,8 @@ const SearchBar = () => {
 
     const token = localStorage.getItem("token")?.replace(/^"|"$/g, '');
 
-    // Debounce: user ke type karna band hone ke 300ms baad hi search chale
-    // (har keystroke pe API call mat maro — server ko spam mat karo)
+    // Debounce: only trigger search 300ms after the user stops typing
+    // (don't make API calls on every keystroke — don't spam the server)
     useEffect(() => {
         if (!query.trim()) {
             setResults([]);
@@ -39,7 +39,7 @@ const SearchBar = () => {
         return () => clearTimeout(timer);
     }, [query, token]);
 
-    // Bahar click karne pe dropdown band ho jaye
+    // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {

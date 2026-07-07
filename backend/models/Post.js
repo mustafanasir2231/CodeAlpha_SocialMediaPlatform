@@ -11,7 +11,6 @@ const postSchema = new mongoose.Schema({
         default: []
     },
     edited: { type: Boolean, default: false },
-    // NAYA: content se nikale gaye hashtags (lowercase, bina # ke) — search/trending ke liye
     hashtags: {
         type: [String],
         default: []

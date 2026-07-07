@@ -7,7 +7,6 @@ const userSchema = new mongoose.Schema({
     profilePic: { type: String, default: "" },
     bio: { type: String, default: "" },
     savedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }],
-    // NAYA: Block feature
     blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, { timestamps: true });
 

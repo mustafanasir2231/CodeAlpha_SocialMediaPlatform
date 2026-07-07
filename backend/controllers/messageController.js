@@ -1,7 +1,7 @@
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const User = require('../models/User');
-const Story = require('../models/Story'); // NAYA — story reply ke liye
+const Story = require('../models/Story'); // NEW — for story reply
 const { emitToUser } = require('../utils/socket');
 
 const findOrCreateConversation = async (userId1, userId2) => {
@@ -14,7 +14,7 @@ const findOrCreateConversation = async (userId1, userId2) => {
   return conversation;
 };
 
-// Inbox: sab conversations ki list
+// Inbox: list of all conversations
 exports.getConversations = async (req, res) => {
   try {
     const conversations = await Conversation.find({ participants: req.user.id })
@@ -36,7 +36,7 @@ exports.getConversations = async (req, res) => {
   }
 };
 
-// Kisi specific user ke sath poori chat history
+// Full chat history with a specific user
 exports.getMessages = async (req, res) => {
   const { username } = req.params;
   try {
@@ -52,7 +52,7 @@ exports.getMessages = async (req, res) => {
       .populate('sender', 'username')
       .sort({ createdAt: 1 });
 
-    // Chat khulte hi — doosre ne jo messages bheje aur abhi tak "seen" nahi hue, unhe seen mark karo
+    // Upon opening the chat — mark as seen any messages sent by the other user that are not yet seen
     const unseenIds = messages
       .filter(m => m.sender._id.toString() !== req.user.id && !m.seen)
       .map(m => m._id);
@@ -78,10 +78,29 @@ exports.getMessages = async (req, res) => {
   }
 };
 
-// Message bhejna — NAYA: optional storyId bhi accept karta hai (story ka DM reply)
+// Count messages from all conversations that were sent by others (not me) and not yet seen.
+exports.getUnreadMessageCount = async (req, res) => {
+  try {
+    const conversations = await Conversation.find({ participants: req.user.id });
+    const conversationIds = conversations.map(c => c._id);
+
+    const count = await Message.countDocuments({
+      conversation: { $in: conversationIds },
+      sender: { $ne: req.user.id },
+      seen: false
+    });
+
+    res.json({ count });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch unread count" });
+  }
+};
+
+// Send message — also accepts optional storyId (for replying to a story via DM)
 exports.sendMessage = async (req, res) => {
   const { username } = req.params;
-  const { text, storyId } = req.body; // NAYA: storyId
+  const { text, storyId } = req.body; // NEW: storyId
   if (!text?.trim()) return res.status(400).json({ error: "Message can't be empty" });
 
   try {
@@ -90,7 +109,7 @@ exports.sendMessage = async (req, res) => {
 
     const conversation = await findOrCreateConversation(req.user.id, otherUser._id);
 
-    // NAYA: Agar storyId diya gaya hai, story ka snapshot fetch karo (agar abhi tak expire nahi hui)
+    // NEW: If storyId is provided, fetch the story snapshot (if not yet expired)
     let storyReply = undefined;
     if (storyId) {
       const story = await Story.findById(storyId);
@@ -104,7 +123,6 @@ exports.sendMessage = async (req, res) => {
           storyOwnerUsername: story.username
         };
       }
-      // Agar story expire/delete ho chuki ho to bhi message bhej dete hain, bas preview nahi hoga
     }
 
     const messageData = {
@@ -121,7 +139,7 @@ exports.sendMessage = async (req, res) => {
     conversation.lastMessageAt = new Date();
     await conversation.save();
 
-    // Real-time: doosre user ko foran bhej do
+    // Real-time: send immediately to the other user
     emitToUser(otherUser._id.toString(), 'receive-message', message);
 
     res.status(201).json(message);

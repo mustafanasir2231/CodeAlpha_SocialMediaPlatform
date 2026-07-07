@@ -63,7 +63,7 @@ router.put('/bio', authMiddleware, async (req, res) => {
     }
 });
 
-// NAYA: Save / Unsave post (toggle) — STATIC route, /:username se UPAR rehna zaroori hai
+// NEW: Save / Unsave post (toggle) — STATIC route, must be placed above /:username
 router.put('/save/:postId', authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
@@ -84,7 +84,7 @@ router.put('/save/:postId', authMiddleware, async (req, res) => {
     }
 });
 
-// NAYA: Get all saved posts of logged-in user — STATIC route, /:username se UPAR
+// NEW: Get all saved posts of logged-in user — STATIC route, place above /:username
 router.get('/saved-posts', authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.user.id).populate({
@@ -98,7 +98,7 @@ router.get('/saved-posts', authMiddleware, async (req, res) => {
     }
 });
 
-// NAYA: Check save status of a specific post — STATIC route, /:username se UPAR
+// NEW: Check save status of a specific post — STATIC route, place above /:username
 router.get('/save-status/:postId', authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
@@ -109,12 +109,10 @@ router.get('/save-status/:postId', authMiddleware, async (req, res) => {
     }
 });
 
-// Get user profile (pic + bio) — FIX: ab /:username direct (frontend isi URL ko call karta hai)
-// Yeh route sab static routes (/search, /profile-pic, /bio, /save, /saved-posts, /save-status)
-// ke NEECHE hona zaroori hai, warna woh sab "username" ban jayenge aur match nahi honge.
+
 router.get('/:username', async (req, res) => {
     try {
-        // NAYA: _id bhi select karo — frontend ko online status check karne ke liye chahiye
+        // NEW: also select _id — needed by frontend for online status check
         const user = await User.findOne({ username: req.params.username }).select('username profilePic bio _id');
         if (!user) return res.status(404).json({ error: "User not found" });
         res.json(user);

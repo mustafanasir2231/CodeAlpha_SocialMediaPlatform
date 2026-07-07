@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { MessageCircle, Heart } from 'lucide-react';
+import '../styles/CommentSection.css';
 
 const CommentSection = ({ postId, socket }) => {
   const [comments, setComments] = useState([]);
   const [text, setText] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-  const [replyingTo, setReplyingTo] = useState(null); // { commentId, username } ya null
+  const [replyingTo, setReplyingTo] = useState(null);
   const [replyText, setReplyText] = useState('');
 
   const myUsername = localStorage.getItem("username");
@@ -25,12 +27,10 @@ const CommentSection = ({ postId, socket }) => {
     }
   };
 
-  // Jab toggle open ho, tabhi comments load hon
   useEffect(() => {
     if (isOpen) fetchComments();
   }, [isOpen, postId]);
 
-  // Real-time: koi naya comment/reply aaye toh dropdown khula ho to refresh kar do
   useEffect(() => {
     if (!socket) return;
 
@@ -80,7 +80,6 @@ const CommentSection = ({ postId, socket }) => {
     }
   };
 
-  // NAYA: Comment ya reply ko like/unlike karna
   const handleToggleLike = async (commentId) => {
     const token = getToken();
     if (!token || token === "undefined") {
@@ -93,7 +92,6 @@ const CommentSection = ({ postId, socket }) => {
       });
       const updated = res.data;
 
-      // NAYA: state mein sahi jagah update karna hai — ya toh top-level comment, ya kisi ke andar reply
       setComments((prev) => prev.map(c => {
         if (c._id === updated._id) {
           return { ...c, likes: updated.likes };
@@ -114,89 +112,80 @@ const CommentSection = ({ postId, socket }) => {
 
   const totalCount = comments.reduce((sum, c) => sum + 1 + (c.replies?.length || 0), 0);
 
-  // NAYA: chhota reusable like button — comment aur reply dono ke liye use hoga
   const LikeButton = ({ item }) => {
     const isLiked = item.likes?.includes(myUsername);
     return (
       <button
+        className={`comment-like-btn ${isLiked ? 'comment-like-btn-active' : ''}`}
         onClick={() => handleToggleLike(item._id)}
-        style={{
-          marginLeft: '8px', fontSize: '12px', border: 'none', background: 'none',
-          color: isLiked ? '#ed4956' : '#888', cursor: 'pointer'
-        }}
       >
-        {isLiked ? '❤️' : '🤍'} {item.likes?.length > 0 ? item.likes.length : ''}
+        <Heart size={13} fill={isLiked ? 'currentColor' : 'none'} />
+        {item.likes?.length > 0 ? item.likes.length : ''}
       </button>
     );
   };
 
   return (
-    <div style={{ marginTop: '10px' }}>
-      {/* Instagram style Comment Icon */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px' }}
-      >
-        💬 {totalCount}
+    <div className="comment-section">
+      {/* NEW: use actual Lucide icon instead of emoji */}
+      <button className="icon-btn comment-toggle-btn" onClick={() => setIsOpen(!isOpen)}>
+        <MessageCircle size={22} />
       </button>
+      {totalCount > 0 && <span className="comment-count">{totalCount}</span>}
 
       {isOpen && (
-        <div style={{ marginTop: '10px', padding: '10px', border: '1px solid #eee', borderRadius: '5px' }}>
-          <div style={{ display: 'flex', gap: '5px' }}>
+        <div className="comment-panel">
+          <div className="comment-input-row">
             <input
+              className="comment-input"
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
               placeholder="Write a comment..."
-              style={{ flex: 1, padding: '5px' }}
             />
-            <button onClick={handleAddComment}>Post</button>
+            <button className="btn btn-primary btn-sm" onClick={handleAddComment}>Post</button>
           </div>
 
-          <div style={{ marginTop: '10px' }}>
+          <div className="comment-list">
             {comments.map(c => (
-              <div key={c._id} style={{ marginBottom: '10px' }}>
-                <div style={{ fontSize: '14px', display: 'flex', alignItems: 'center' }}>
+              <div key={c._id} className="comment-item">
+                <div className="comment-line">
                   <span>
                     <strong>{c.username}:</strong> {c.text}
                   </span>
-                  {/* NAYA: comment like button */}
                   <LikeButton item={c} />
                   <button
+                    className="comment-reply-btn"
                     onClick={() => setReplyingTo(replyingTo?.commentId === c._id ? null : { commentId: c._id, username: c.username })}
-                    style={{ marginLeft: '8px', fontSize: '12px', border: 'none', background: 'none', color: '#0095f6', cursor: 'pointer' }}
                   >
                     Reply
                   </button>
                 </div>
 
-                {/* Replies — thoda indent karke dikhao */}
                 {c.replies?.length > 0 && (
-                  <div style={{ marginLeft: '20px', marginTop: '5px', borderLeft: '2px solid #eee', paddingLeft: '10px' }}>
+                  <div className="comment-replies">
                     {c.replies.map(r => (
-                      <div key={r._id} style={{ fontSize: '13px', marginBottom: '4px', display: 'flex', alignItems: 'center' }}>
+                      <div key={r._id} className="comment-reply-line">
                         <span>
                           <strong>{r.username}:</strong> {r.text}
                         </span>
-                        {/* NAYA: reply like button */}
                         <LikeButton item={r} />
                       </div>
                     ))}
                   </div>
                 )}
 
-                {/* Reply input box — sirf jab "Reply" pe click ho */}
                 {replyingTo?.commentId === c._id && (
-                  <div style={{ marginLeft: '20px', marginTop: '6px', display: 'flex', gap: '5px' }}>
+                  <div className="comment-reply-input-row">
                     <input
                       autoFocus
+                      className="comment-input comment-input-sm"
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleAddReply(c._id)}
                       placeholder={`Reply to ${c.username}...`}
-                      style={{ flex: 1, padding: '5px', fontSize: '13px' }}
                     />
-                    <button onClick={() => handleAddReply(c._id)} style={{ fontSize: '13px' }}>Reply</button>
+                    <button className="btn btn-outline btn-sm" onClick={() => handleAddReply(c._id)}>Reply</button>
                   </div>
                 )}
               </div>

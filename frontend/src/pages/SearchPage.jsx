@@ -4,8 +4,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Search as SearchIcon } from 'lucide-react';
 import '../styles/SearchPage.css';
 
-// Explore/Search page — Instagram jaisa: search bar (users), trending hashtags,
-// aur neeche posts ka grid. Saari APIs already maujood hain, sirf naya page hai.
+// Explore/Search page — search bar (for users), trending hashtags,
+// and a grid of posts below. All APIs already exist; this is just a new page.
 const SearchPage = () => {
     const navigate = useNavigate();
     const [query, setQuery] = useState("");
@@ -18,7 +18,7 @@ const SearchPage = () => {
 
     const token = localStorage.getItem("token")?.replace(/^"|"$/g, '');
 
-    // User search — debounced, jaisa SearchBar.jsx mein hota hai
+    // User search — debounced, similar to the logic in SearchBar.jsx
     useEffect(() => {
         if (!query.trim()) {
             setUserResults([]);
@@ -42,7 +42,7 @@ const SearchPage = () => {
         return () => clearTimeout(timer);
     }, [query, token]);
 
-    // Trending hashtags
+    // Fetch trending hashtags
     useEffect(() => {
         const fetchTrending = async () => {
             try {
@@ -55,8 +55,8 @@ const SearchPage = () => {
         fetchTrending();
     }, []);
 
-    // Explore grid — sab posts, jin mein media ho (text-only posts grid mein nahi dikhana,
-    // kyunke grid sirf visual content ke liye hota hai jaisa Instagram mein)
+    // Explore grid — all posts that have media (text‑only posts are not shown in the grid,
+    // because the grid is for visual content only, like on Instagram)
     useEffect(() => {
         const fetchExplorePosts = async () => {
             setLoadingPosts(true);
@@ -87,7 +87,7 @@ const SearchPage = () => {
                 />
             </div>
 
-            {/* User search results — sirf jab type kar rahe hon */}
+            {/* User search results — only shown while typing */}
             {query.trim() && (
                 <div className="search-user-results">
                     {searching ? (
@@ -114,7 +114,7 @@ const SearchPage = () => {
                 </div>
             )}
 
-            {/* Trending + Explore grid — sirf jab search box khali ho */}
+            {/* Trending + Explore grid — only shown when the search box is empty */}
             {!query.trim() && (
                 <>
                     {trendingTags.length > 0 && (

@@ -1,14 +1,14 @@
 import React from 'react';
 
-// Har user ka circle avatar — agar unseen story hai to colorful ring, dekh li hai to grey ring
+// Each user's circle avatar — colorful ring if there's an unseen story, grey ring if all have been viewed
 const StoryAvatarsStrip = ({ storyGroups, myUsername, onAddClick, onAvatarClick, hasMyStory }) => {
     return (
         <div style={{
             display: 'flex', gap: '16px', overflowX: 'auto',
             padding: '15px 20px', alignItems: 'flex-start'
         }}>
-            {/* NAYA: "Add Story" — apna avatar, + icon ke sath. Agar meri story already hai,
-                isay click karne se "view my story" + neeche se naya add karne ka option milega */}
+            {/* NEW: "Add Story" — your own avatar with a + icon. If you already have a story,
+                clicking it will allow you to "view my story" plus an option to add a new one from below */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: '64px' }}>
                 <div
                     onClick={() => hasMyStory ? onAvatarClick(myUsername) : onAddClick()}
@@ -30,7 +30,7 @@ const StoryAvatarsStrip = ({ storyGroups, myUsername, onAddClick, onAvatarClick,
                         {myUsername?.[0]?.toUpperCase()}
                     </div>
 
-                    {/* + icon — sirf jab meri abhi koi active story na ho ya hamesha add ka shortcut */}
+                    {/* + icon — only when I don't have an active story yet, or always as a shortcut to add */}
                     <div
                         onClick={(e) => { e.stopPropagation(); onAddClick(); }}
                         style={{
@@ -46,7 +46,7 @@ const StoryAvatarsStrip = ({ storyGroups, myUsername, onAddClick, onAvatarClick,
                 <span style={{ fontSize: '12px', marginTop: '4px', color: '#555' }}>Your Story</span>
             </div>
 
-            {/* Doosre users ki stories */}
+            {/* Other users' stories */}
             {storyGroups.map(group => (
                 <div
                     key={group.username}
@@ -56,7 +56,7 @@ const StoryAvatarsStrip = ({ storyGroups, myUsername, onAddClick, onAvatarClick,
                     <div style={{
                         width: '60px', height: '60px', borderRadius: '50%',
                         background: group.allSeen
-                            ? '#ccc' // saari dekh li hain — grey ring
+                            ? '#ccc' // all have been viewed — grey ring
                             : 'linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5)', // colorful ring
                         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px'
                     }}>

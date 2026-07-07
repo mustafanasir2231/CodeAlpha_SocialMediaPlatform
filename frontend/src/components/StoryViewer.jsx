@@ -2,17 +2,13 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
 
-const STORY_DURATION = 5000; // 5 seconds per story, image/text ke liye
+const STORY_DURATION = 5000; // 5 seconds per story, for image/text
 
-// Fullscreen story viewer — group ke andar stories ke through navigate karta hai.
+// Fullscreen story viewer — navigates through stories within a group.
 const StoryViewer = ({ allGroups, startGroupIndex, onClose, myUsername, onStoryDeleted }) => {
     const [groupIndex, setGroupIndex] = useState(startGroupIndex);
     const [storyIndex, setStoryIndex] = useState(0);
 
-    // NAYA: Saari stories ko local mutable state mein rakhte hain, taake like/comment-count
-    // update hone par React ko pata chale aur re-render ho (pehle hum currentStory object ko
-    // directly mutate kar rahe the jo React ko dikhta hi nahi tha — isi wajah se UI update
-    // nahi hota tha jab tak refresh na karo)
     const [groups, setGroups] = useState(allGroups);
 
     const [progress, setProgress] = useState(0);
@@ -35,8 +31,8 @@ const StoryViewer = ({ allGroups, startGroupIndex, onClose, myUsername, onStoryD
     const currentStory = currentGroup?.stories?.[storyIndex];
     const isMine = currentStory?.username === myUsername;
 
-    // NAYA: ek chhota helper — current story ko naye data ke sath immutably update karta hai,
-    // taake React state badle aur UI foran re-render ho
+    // NEW: a small helper to immutably update the current story with new data,
+    // so that React state changes and the UI re-renders immediately
     const updateCurrentStory = (patch) => {
         setGroups((prevGroups) => {
             const newGroups = [...prevGroups];
@@ -49,11 +45,7 @@ const StoryViewer = ({ allGroups, startGroupIndex, onClose, myUsername, onStoryD
         });
     };
 
-    // Story view karte hi backend ko bata do (seen mark + privacy check yahi se hota hai).
-    // FIX: agar yeh APNI story hai, to seen mark karne ki zaroorat nahi (backend bhi owner ko
-    // seen list mein nahi jodta), lekin humein FRESH seenBy/likes/commentCount chahiye —
-    // HomePage se pass hua data tab fetch hua tha jab viewer khula nahi tha, isliye doosron
-    // ki dekhi hui counts purani (stale) reh jaati thi jab tak HomePage poora refresh na ho.
+ 
     const refreshCurrentStory = useCallback(async (storyId) => {
         try {
             const res = await axios.get(`http://localhost:5000/api/stories/${storyId}`, {
@@ -87,7 +79,7 @@ const StoryViewer = ({ allGroups, startGroupIndex, onClose, myUsername, onStoryD
 
         setProgress(0);
         const duration = currentStory.type === 'video' ? null : STORY_DURATION;
-        if (!duration) return; // video ke liye onEnded se advance hoga
+        if (!duration) return; // video will advance via onEnded
 
         const stepMs = 50;
         let elapsed = 0;
@@ -125,8 +117,8 @@ const StoryViewer = ({ allGroups, startGroupIndex, onClose, myUsername, onStoryD
         }
     };
 
-    // FIX: Like toggle — ab proper immutable state update karte hain, isliye heart icon
-    // aur like list foran (refresh ke bina) update hoti hai
+    // FIX: Like toggle — now we use proper immutable state updates, so the heart icon
+    // and like list update immediately (without a refresh)
     const handleLike = async () => {
         try {
             const res = await axios.put(`http://localhost:5000/api/stories/like/${currentStory._id}`, {}, {
@@ -140,7 +132,7 @@ const StoryViewer = ({ allGroups, startGroupIndex, onClose, myUsername, onStoryD
 
     const isLiked = currentStory?.likes?.includes(myUsername);
 
-    // Comments fetch karna
+    // Fetch comments
     const fetchComments = async () => {
         try {
             const res = await axios.get(`http://localhost:5000/api/stories/${currentStory._id}/comments`, {
@@ -163,8 +155,8 @@ const StoryViewer = ({ allGroups, startGroupIndex, onClose, myUsername, onStoryD
         setPaused(false);
     };
 
-    // FIX: Comment post karne ke baad commentCount ko bhi state mein update karte hain,
-    // taake 💬 icon ke pass count foran badh jaye (pehle yeh kahin track hi nahi hota tha)
+    // FIX: After posting a comment, also update commentCount in state,
+    // so the 💬 icon count increments immediately (previously it wasn't tracked at all)
     const handlePostComment = async () => {
         if (!commentText.trim()) return;
         try {
@@ -180,7 +172,7 @@ const StoryViewer = ({ allGroups, startGroupIndex, onClose, myUsername, onStoryD
         }
     };
 
-    // DM reply bhejna
+    // Send a DM reply
     const handleSendReply = async () => {
         if (!replyText.trim()) return;
         try {
@@ -196,7 +188,7 @@ const StoryViewer = ({ allGroups, startGroupIndex, onClose, myUsername, onStoryD
         }
     };
 
-    // Seen-by list (sirf apni story pe) — ab seenAt time ke sath aata hai
+    // Seen-by list (only for your own story) — now includes seenAt time
     const openSeenBy = async () => {
         setShowSeenBy(true);
         setPaused(true);
@@ -236,7 +228,7 @@ const StoryViewer = ({ allGroups, startGroupIndex, onClose, myUsername, onStoryD
         }
     };
 
-    // Edit (sirf text stories)
+    // Edit (only text stories)
     const startEdit = () => {
         setEditText(currentStory.text);
         setEditing(true);
@@ -363,8 +355,8 @@ const StoryViewer = ({ allGroups, startGroupIndex, onClose, myUsername, onStoryD
                         <button onClick={handleSendReply} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '20px', cursor: 'pointer' }}>➤</button>
                     )}
 
-                    {/* FIX: ab likes.length bhi dikhate hain, aur state sahi se update hone ki wajah
-                        se icon foran red/white badalta hai */}
+                    {/* FIX: now we also display likes.length, and the icon changes red/white immediately
+                        because state updates properly */}
                     <button onClick={handleLike} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         {isLiked ? '❤️' : '🤍'}
                         {currentStory.likes?.length > 0 && (
@@ -372,7 +364,7 @@ const StoryViewer = ({ allGroups, startGroupIndex, onClose, myUsername, onStoryD
                         )}
                     </button>
 
-                    {/* FIX: comment count ab story.commentCount se dikhta hai */}
+                    {/* FIX: comment count now displayed from story.commentCount */}
                     <button onClick={openComments} style={{ background: 'none', border: 'none', color: '#fff', fontSize: '22px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         💬
                         {currentStory.commentCount > 0 && (
@@ -404,7 +396,7 @@ const StoryViewer = ({ allGroups, startGroupIndex, onClose, myUsername, onStoryD
                                 comments.map(c => (
                                     <div key={c._id} style={{ marginBottom: '8px', fontSize: '13px' }}>
                                         <strong>{c.username}</strong> {c.text}
-                                        {/* FIX: comment ka time bhi dikhana */}
+                                        {/* FIX: also display comment time */}
                                         <div style={{ fontSize: '11px', color: '#999' }}>
                                             {c.createdAt ? formatDistanceToNow(new Date(c.createdAt), { addSuffix: true }) : ''}
                                         </div>
@@ -427,7 +419,7 @@ const StoryViewer = ({ allGroups, startGroupIndex, onClose, myUsername, onStoryD
                     </div>
                 )}
 
-                {/* Seen-by panel — FIX: ab seenAt time bhi dikhata hai */}
+                {/* Seen-by panel — FIX: now shows seenAt time */}
                 {showSeenBy && (
                     <div style={{
                         position: 'absolute', bottom: 0, left: 0, right: 0, background: '#fff',
@@ -449,7 +441,7 @@ const StoryViewer = ({ allGroups, startGroupIndex, onClose, myUsername, onStoryD
                                             </div>
                                             {u.username}
                                         </div>
-                                        {/* NAYA: kab dekhi */}
+                                        {/* NEW: when viewed */}
                                         <span style={{ fontSize: '11px', color: '#999' }}>
                                             {u.seenAt ? formatDistanceToNow(new Date(u.seenAt), { addSuffix: true }) : ''}
                                         </span>

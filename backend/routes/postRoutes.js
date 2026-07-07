@@ -7,7 +7,7 @@ const User = require('../models/User');
 const { createNotification } = require('../controllers/notificationController');
 const { emitToAll } = require('../utils/socket');
 
-// ===== Multer setup: post media (images/videos) disk pe store karne ke liye =====
+// ===== Multer setup: store post media (images/videos) on disk =====
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, path.join(__dirname, '../uploads'));
@@ -35,13 +35,12 @@ const upload = multer({
     }
 });
 
-// NAYA: Content se hashtags nikalna — #Coding, #coding123, #coding_tips sab match honge
-// Lowercase store karte hain taake #Coding aur #coding same hashtag count hon
+
 const extractHashtags = (text) => {
     if (!text) return [];
     const matches = text.match(/#(\w+)/g) || [];
     const tags = matches.map(tag => tag.slice(1).toLowerCase());
-    return [...new Set(tags)]; // duplicates hata do
+    return [...new Set(tags)]; // remove duplicates
 };
 
 // Create post — text + media
@@ -61,7 +60,6 @@ router.post('/create', upload.array('media', 10), async (req, res) => {
             }))
             : [];
 
-        // NAYA: hashtags extract karke save karo
         const hashtags = extractHashtags(content);
 
         const newPost = new Post({ username, content: content || "", media, hashtags });
@@ -102,7 +100,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Static routes — hamesha /:id se UPAR
 
 router.get('/my-posts', async (req, res) => {
     try {
@@ -114,8 +111,7 @@ router.get('/my-posts', async (req, res) => {
     }
 });
 
-// NAYA: Trending hashtags — sabse zyada use hone wale top 8 hashtags (count ke sath)
-// Static route hai, /:id se UPAR hona ZAROORI hai
+
 router.get('/trending-hashtags', async (req, res) => {
     try {
         const trending = await Post.aggregate([
@@ -124,7 +120,7 @@ router.get('/trending-hashtags', async (req, res) => {
             { $sort: { count: -1 } },
             { $limit: 8 }
         ]);
-        // _id ko "tag" naam de do — frontend ke liye cleaner
+        // Rename _id to 'tag' — cleaner for frontend
         res.json(trending.map(t => ({ tag: t._id, count: t.count })));
     } catch (err) {
         console.error(err);
@@ -132,7 +128,7 @@ router.get('/trending-hashtags', async (req, res) => {
     }
 });
 
-// NAYA: Kisi specific hashtag wali sab posts — static route, /:id se UPAR
+// NEW: All posts for a specific hashtag — static route, place above /:id
 router.get('/hashtag/:tag', async (req, res) => {
     try {
         const tag = req.params.tag.toLowerCase();
@@ -144,7 +140,7 @@ router.get('/hashtag/:tag', async (req, res) => {
     }
 });
 
-// Edit post — sirf text update, media same rahegi
+// Edit post — only text update, media remains same
 router.put('/edit/:id', async (req, res) => {
     try {
         const { username, content } = req.body;
@@ -156,18 +152,18 @@ router.put('/edit/:id', async (req, res) => {
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).json({ error: "Post not found" });
 
-        // Security: sirf apni post edit kar sako
+        // Security: only edit your own post
         if (post.username !== username) {
             return res.status(403).json({ error: "Unauthorized" });
         }
 
         post.content = content.trim();
         post.edited = true;
-        // NAYA: edit ke baad hashtags dobara extract karo (naye add/remove ho sakte hain)
+        // NEW: re-extract hashtags after edit (new ones may be added/removed)
         post.hashtags = extractHashtags(content);
         await post.save();
 
-        // Real-time: sabko batao
+        // Real-time: notify everyone
         emitToAll('post-edited', post);
 
         res.json(post);
@@ -217,7 +213,6 @@ router.put('/like/:id', async (req, res) => {
     }
 });
 
-// Get single post by ID — sab se neeche (wildcard)
 router.get('/:id', async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
